@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>CareerIQ — AI Career Intelligence Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;0,9..144,900;1,9..144,400&family=Outfit:wght@300;400;500;600;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  /* ── Gold/Cream theme ── */
+  --bg:#0a0906;--bg2:#0f0d0a;--bg3:#161410;--bg4:#1c1a16;
+  --gold:#d4a853;--gold-light:#e8c47a;--gold-dim:rgba(212,168,83,0.14);--gold-glow:rgba(212,168,83,0.28);
+  --green:#6db87a;--green-dim:rgba(109,184,122,0.12);
+  --blue:#6aaed4;--blue-dim:rgba(106,174,212,0.12);
+  --rose:#d47070;--rose-dim:rgba(212,112,112,0.12);
+  --purple:#a98fd4;--purple-dim:rgba(169,143,212,0.12);
+  --amber:#d4a853;--amber-dim:rgba(212,168,83,0.12);
+  --text:#f0ead8;--text-mid:#b8a890;--text-dim:#7a7060;
+  --border:rgba(212,168,83,0.18);--border-bright:rgba(212,168,83,0.42);
+  --radius:14px;
+  /* Font aliases */
+  --font-head:'Fraunces',serif;
+  --font-body:'Outfit',sans-serif;
+  --font-mono:'DM Mono',monospace;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:var(--font-body);min-height:100vh;overflow-x:hidden;
+}
+
+/* ── NOISE TEXTURE ── */
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E");
+  opacity:0.5;
+}
+
+/* ── RADIAL GLOWS ── */
+.bg-orb{position:fixed;border-radius:50%;filter:blur(140px);opacity:.10;pointer-events:none;z-index:0}
+.bg-orb-1{width:680px;height:680px;background:var(--gold);top:-220px;left:-220px}
+.bg-orb-2{width:520px;height:520px;background:#4a6fa5;bottom:-120px;right:-120px}
+.bg-orb-3{width:320px;height:320px;background:var(--green);top:42%;left:58%}
+
+/* ── LAYOUT ── */
+.wrap{position:relative;z-index:1;max-width:780px;margin:0 auto;padding:0 24px 100px}
+
+/* ── TOPBAR ── */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:28px 0 0;margin-bottom:0}
+.brand{font-family:var(--font-head);font-size:22px;font-weight:900;color:var(--gold);letter-spacing:-.3px}
+.brand-sub{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);letter-spacing:2px;display:block;margin-top:2px}
+.step-counter{font-family:var(--font-mono);font-size:11px;color:var(--text-dim)}
+
+/* ── PROGRESS ── */
+.prog-track{display:flex;gap:4px;margin:24px 0 0}
+.pseg{flex:1;height:2px;border-radius:2px;background:rgba(255,255,255,0.06);transition:background .4s}
+.pseg.done{background:var(--gold)}.pseg.active{background:rgba(212,168,83,0.45)}
+
+/* ── SCREENS ── */
+.screen{display:none}
+.screen.active{display:block;animation:fadeUp .45s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── TYPOGRAPHY ── */
+h1{font-family:var(--font-head);font-size:clamp(36px,7vw,66px);font-weight:900;line-height:1.05;letter-spacing:-.5px}
+h2{font-family:var(--font-head);font-size:clamp(24px,4vw,36px);font-weight:700;line-height:1.1}
+.eyebrow{font-family:var(--font-mono);font-size:10px;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin-bottom:14px}
+.lead{color:var(--text-mid);font-size:15px;line-height:1.8;max-width:540px;margin:14px 0 0}
+.accent{color:var(--gold)}.accent-c{color:var(--gold-light)}.accent-g{color:var(--green)}
+
+/* ── INTRO ICON FLOAT ── */
+.intro-icon{animation:float 3s ease-in-out infinite;display:block}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:9px;border:none;border-radius:10px;
+  padding:13px 28px;font-size:14px;font-weight:600;cursor:pointer;
+  font-family:var(--font-body);letter-spacing:.2px;transition:all .2s}
+.btn-primary{background:var(--gold);color:#0a0906;box-shadow:0 4px 30px var(--gold-glow)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 40px var(--gold-glow);background:var(--gold-light)}
+.btn-primary:active{transform:none}
+.btn-secondary{background:transparent;color:var(--text-dim);border:1px solid rgba(255,255,255,0.09)}
+.btn-secondary:hover{border-color:var(--border-bright);color:var(--text)}
+.btn-sm{padding:9px 18px;font-size:13px}
+
+/* ── FORM ── */
+.field{display:flex;flex-direction:column;gap:7px}
+.flabel{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim)}
+.flabel .req{color:var(--gold)}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.fgrid.f1{grid-template-columns:1fr}
+@media(max-width:520px){.fgrid{grid-template-columns:1fr}}
+
+input[type=text],input[type=number],textarea,select{
+  background:var(--bg3);border:1px solid rgba(255,255,255,0.08);border-radius:10px;
+  padding:12px 16px;color:var(--text);font-size:14px;font-family:var(--font-body);
+  outline:none;width:100%;appearance:none;transition:border-color .2s,box-shadow .2s}
+input:focus,textarea:focus,select:focus{
+  border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,168,83,.12)}
+input::placeholder,textarea::placeholder{color:var(--text-dim)}
+select{cursor:pointer;padding-right:40px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a7060' fill='none' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center}
+select option{background:var(--bg3)}
+textarea{resize:vertical;min-height:72px}
+
+/* ── CARDS ── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:24px}
+.card-sm{background:var(--bg3);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:18px 20px}
+
+/* ── PILL CHECKS ── */
+.pills{display:flex;flex-wrap:wrap;gap:7px;margin-top:4px}
+.pck{display:none}
+.plbl{padding:7px 14px;border-radius:100px;border:1px solid rgba(255,255,255,0.09);
+  color:var(--text-dim);font-size:12px;cursor:pointer;transition:all .15s;user-select:none;
+  font-family:var(--font-body)}
+.plbl:hover{border-color:var(--border-bright);color:var(--text)}
+.pck:checked+.plbl{background:var(--gold-dim);border-color:var(--gold);color:var(--gold-light)}
+
+/* ── DOMAIN GRID ── */
+.domain-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+@media(max-width:520px){.domain-grid{grid-template-columns:1fr}}
+.dck{display:none}
+.dcard{padding:13px 16px;border-radius:11px;border:1px solid rgba(255,255,255,0.07);
+  background:rgba(255,255,255,0.02);cursor:pointer;transition:all .18s;
+  display:flex;align-items:center;gap:11px}
+.dcard:hover{border-color:var(--border);background:rgba(212,168,83,0.05)}
+.dck:checked+.dcard{background:var(--gold-dim);border-color:var(--gold)}
+.dck:checked+.dcard .ddot{background:var(--gold)}
+.dck:checked+.dcard .dname{color:var(--gold-light)}
+.ddot{width:7px;height:7px;border-radius:50%;background:var(--text-dim);flex-shrink:0;transition:.18s}
+.dname{font-size:13px;color:var(--text-mid);font-weight:500}
+
+/* ── NAV ── */
+.navbtns{display:flex;justify-content:space-between;align-items:center;margin-top:36px}
+
+/* ── STEP HEADER ── */
+.step-hd{padding:44px 0 28px}
+
+/* ── API PANEL ── */
+.api-panel{background:var(--gold-dim);border:1px solid var(--border-bright);
+  border-radius:var(--radius);padding:22px 24px;margin-bottom:28px}
+.api-row{display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+.api-icon{font-size:20px;flex-shrink:0;margin-top:3px}
+.api-text strong{font-size:13px;color:var(--gold-light);display:block;margin-bottom:3px}
+.api-text span{font-size:12px;color:var(--text-dim)}
+.api-text a{color:var(--gold)}
+.api-key-in{flex:2;min-width:200px;font-family:var(--font-mono)!important;font-size:12px!important}
+.mrck{display:none}
+.mrpl{padding:6px 14px;border-radius:100px;border:1px solid rgba(255,255,255,0.09);
+  color:var(--text-dim);font-size:12px;cursor:pointer;transition:all .15s;
+  user-select:none;display:inline-flex;align-items:center;gap:6px;font-family:var(--font-body)}
+.mrpl:hover{border-color:var(--border-bright);color:var(--text)}
+input[type=radio]:checked+.mrpl{background:var(--gold-dim);border-color:var(--gold);color:var(--gold-light)}
+.tag-rec{font-size:9px;background:var(--green-dim);color:var(--green);border-radius:3px;padding:1px 5px;font-family:var(--font-mono)}
+.tag-fast{font-size:9px;background:var(--amber-dim);color:var(--amber);border-radius:3px;padding:1px 5px;font-family:var(--font-mono)}
+
+/* ── RESUME UPLOAD ── */
+.upload-zone{border:2px dashed rgba(212,168,83,0.28);border-radius:var(--radius);
+  padding:32px 24px;text-align:center;cursor:pointer;transition:all .2s;
+  background:rgba(212,168,83,0.03)}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--gold);background:var(--gold-dim)}
+.upload-icon{font-size:40px;margin-bottom:12px;display:block}
+.upload-title{font-size:15px;font-weight:600;margin-bottom:6px}
+.upload-hint{font-size:12px;color:var(--text-dim)}
+#resume-file{display:none}
+.upload-success{align-items:center;gap:12px;padding:14px 18px;
+  background:var(--green-dim);border:1px solid rgba(109,184,122,.28);
+  border-radius:10px;font-size:13px;color:var(--green);display:none}
+.upload-success.show{display:flex}
+
+/* ── SKILLS ── */
+.sk-sec{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px 22px;margin-bottom:14px}
+.sk-hd{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;gap:12px}
+.sk-lbl{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim)}
+.sk-lbl .req{color:var(--gold)}
+.sk-hint{font-size:11px;color:var(--text-dim);margin-top:3px}
+.sk-cnt{font-family:var(--font-mono);font-size:11px;color:var(--gold);
+  background:var(--gold-dim);border:1px solid var(--border);border-radius:100px;
+  padding:2px 10px;white-space:nowrap;flex-shrink:0}
+.sk-tabs{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:11px}
+.stab{padding:4px 11px;border-radius:6px;border:1px solid rgba(255,255,255,0.08);
+  background:transparent;color:var(--text-dim);font-size:10px;cursor:pointer;
+  font-family:var(--font-mono);letter-spacing:.5px;transition:all .15s;white-space:nowrap}
+.stab:hover{border-color:var(--border);color:var(--text-mid)}
+.stab.active{background:var(--gold-dim);border-color:var(--gold);color:var(--gold-light)}
+.sk-search{width:100%;background:rgba(255,255,255,0.03)!important;
+  border:1px dashed rgba(255,255,255,0.1)!important;border-radius:8px!important;
+  padding:9px 14px!important;font-size:13px!important;margin-bottom:10px}
+.sk-search:focus{border-color:var(--gold)!important;box-shadow:0 0 0 3px rgba(212,168,83,.1)!important}
+.sk-pills{display:flex;flex-wrap:wrap;gap:6px}
+.spck{display:none}
+.splbl{padding:5px 12px;border-radius:100px;border:1px solid rgba(255,255,255,0.08);
+  color:var(--text-dim);font-size:11px;cursor:pointer;transition:all .13s;
+  user-select:none;display:inline-block;font-family:var(--font-body)}
+.splbl:hover{border-color:var(--border);color:var(--text)}
+.spck:checked+.splbl{background:var(--gold-dim);border-color:var(--gold);color:var(--gold-light)}
+.custom-row{display:flex;gap:8px;margin-top:12px}
+.custom-in{flex:1;background:rgba(255,255,255,0.03)!important;
+  border:1px dashed rgba(255,255,255,0.1)!important;border-radius:8px!important;
+  padding:8px 14px!important;font-size:12px!important}
+.custom-btn{padding:8px 14px;border-radius:8px;border:1px solid var(--border);
+  background:var(--gold-dim);color:var(--gold-light);font-size:11px;cursor:pointer;
+  font-family:var(--font-body);white-space:nowrap;transition:all .15s}
+.custom-btn:hover{background:rgba(212,168,83,.22)}
+.no-res{font-size:11px;color:var(--text-dim);padding:8px 0;font-family:var(--font-mono);display:none}
+
+/* ── SCORE PREVIEW ── */
+.preview-bar{margin-top:8px;background:var(--bg3);border:1px solid rgba(255,255,255,0.07);
+  border-radius:10px;padding:14px 16px;display:none}
+.preview-bar.show{display:block}
+.preview-title{font-family:var(--font-mono);font-size:9px;letter-spacing:3px;
+  color:var(--text-dim);text-transform:uppercase;margin-bottom:10px}
+.preview-items{display:flex;flex-direction:column;gap:7px}
+.pv-item{display:flex;align-items:center;gap:10px}
+.pv-name{font-size:12px;color:var(--text-mid);min-width:160px;flex-shrink:0}
+.pv-track{flex:1;height:4px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden}
+.pv-fill{height:100%;border-radius:2px;background:var(--gold);transition:width .6s ease}
+.pv-score{font-family:var(--font-mono);font-size:10px;color:var(--gold);min-width:32px;text-align:right}
+
+/* ── LOADING ── */
+#screen-loading{text-align:center;padding:80px 0}
+.ring-wrap{width:72px;height:72px;position:relative;margin:0 auto 28px}
+.ring-wrap::before,.ring-wrap::after{content:'';position:absolute;inset:0;border-radius:50%}
+.ring-wrap::before{border:2px solid rgba(212,168,83,.12)}
+.ring-wrap::after{border:2px solid transparent;border-top-color:var(--gold);animation:spin .85s linear infinite}
+.ring-inner{position:absolute;inset:10px;border-radius:50%;border:2px solid transparent;
+  border-top-color:rgba(212,168,83,.32);animation:spin 1.5s linear infinite reverse}
+.loader-msg{font-family:var(--font-mono);font-size:12px;color:var(--text-dim);margin-top:8px}
+.agent-steps{max-width:360px;margin:28px auto 0;text-align:left;display:flex;flex-direction:column;gap:8px}
+.astep{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--text-dim);opacity:.3;transition:opacity .4s}
+.astep.done{opacity:1;color:var(--text-mid)}
+.astep .aicon{color:var(--green);font-size:11px;width:14px;text-align:center;flex-shrink:0}
+.agent-badge{display:inline-flex;align-items:center;gap:5px;font-family:var(--font-mono);
+  font-size:9px;letter-spacing:2px;padding:3px 8px;border-radius:4px;text-transform:uppercase}
+.ab-blue{background:var(--gold-dim);color:var(--gold);border:1px solid var(--border)}
+.ab-green{background:var(--green-dim);color:var(--green);border:1px solid rgba(109,184,122,.22)}
+.ab-purple{background:var(--purple-dim);color:var(--purple);border:1px solid rgba(169,143,212,.22)}
+.ab-amber{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(212,168,83,.22)}
+
+/* ── RESULTS ── */
+.result-header{display:flex;justify-content:space-between;align-items:flex-start;
+  gap:20px;flex-wrap:wrap;padding:48px 0 0}
+.score-block{text-align:right;flex-shrink:0}
+.score-num{font-family:var(--font-head);font-size:64px;font-weight:900;
+  color:var(--gold);line-height:1}
+.score-lbl{font-family:var(--font-mono);font-size:9px;letter-spacing:3px;color:var(--text-dim);margin-top:4px}
+.score-bar-wrap{height:3px;background:rgba(255,255,255,0.07);border-radius:2px;margin-top:8px;overflow:hidden;width:140px;margin-left:auto}
+.score-bar-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-light));border-radius:2px;width:0;transition:width 1.2s ease}
+.algo-label{font-family:var(--font-mono);font-size:9px;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-top:6px}
+
+/* ── SUMMARY CARD ── */
+.summary-card{background:rgba(212,168,83,0.05);border:1px solid var(--border-bright);
+  border-radius:var(--radius);border-left:3px solid var(--gold);padding:22px 24px;margin:20px 0}
+.summary-card p{font-size:14px;color:var(--text-mid);line-height:1.8}
+
+/* ── ALGO BREAKDOWN ── */
+.algo-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}
+@media(max-width:600px){.algo-grid{grid-template-columns:repeat(2,1fr)}}
+.algo-cell{background:var(--bg3);border:1px solid rgba(255,255,255,0.07);border-radius:11px;padding:16px;text-align:center}
+.algo-val{font-family:var(--font-head);font-size:28px;font-weight:700;line-height:1}
+.algo-key{font-family:var(--font-mono);font-size:9px;letter-spacing:2px;color:var(--text-dim);margin-top:6px;text-transform:uppercase}
+
+/* ── CHART ROW ── */
+.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0}
+@media(max-width:580px){.chart-row{grid-template-columns:1fr}}
+.chart-box{background:var(--bg3);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:16px;height:200px;position:relative}
+.chart-box canvas{max-height:150px !important}
+.chart-title{font-family:var(--font-mono);font-size:9px;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:14px}
+
+/* ── SKILL GAPS ── */
+.gap-list{display:flex;flex-direction:column;gap:10px}
+.gap-item{display:flex;flex-direction:column;gap:5px}
+.gap-meta{display:flex;justify-content:space-between}
+.gap-name{font-size:12px;color:var(--text-mid)}
+.gap-demand{font-family:var(--font-mono);font-size:10px;color:var(--text-dim)}
+.gap-track{height:5px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden}
+.gap-fill{height:100%;border-radius:3px;transition:width 1s ease .3s}
+
+/* ── TWO-COL ── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+@media(max-width:520px){.two-col{grid-template-columns:1fr}}
+.chk-item{display:flex;gap:9px;align-items:flex-start;padding:5px 0;font-size:13px;color:var(--text-mid);line-height:1.5}
+.chk-ic{flex-shrink:0;margin-top:2px;font-size:11px}
+.insight-box{background:var(--purple-dim);border:1px solid rgba(169,143,212,.22);border-radius:12px;padding:18px 20px;margin:12px 0}
+.insight-box p{font-size:13px;color:var(--text-mid);line-height:1.7}
+.actions-box{background:var(--green-dim);border:1px solid rgba(109,184,122,.22);border-radius:12px;padding:18px 20px;margin:12px 0}
+.action-item{display:flex;gap:12px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:13px;color:var(--text-mid)}
+.action-item:last-child{border-bottom:none}
+.action-num{color:var(--green);font-family:var(--font-mono);font-size:11px;flex-shrink:0;margin-top:1px}
+
+/* ── MARKET TRENDS ── */
+.trend-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.trend-chip{padding:6px 14px;border-radius:100px;background:var(--green-dim);
+  border:1px solid rgba(109,184,122,.22);font-size:12px;color:var(--green)}
+
+/* ── CAREER TABS ── */
+.career-tabs-wrap{margin:28px 0 0}
+.career-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.career-tabs::-webkit-scrollbar{display:none}
+.ctab{padding:8px 16px;border-radius:8px;border:1px solid rgba(255,255,255,0.08);
+  background:transparent;color:var(--text-dim);font-size:12px;cursor:pointer;
+  white-space:nowrap;font-family:var(--font-body);transition:all .18s;flex-shrink:0}
+.ctab:hover{border-color:var(--border);color:var(--text-mid)}
+.ctab.active{background:var(--gold-dim);border-color:var(--gold);color:var(--gold-light)}
+
+/* ── CAREER CARD ── */
+.career-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);
+  padding:28px;margin-top:12px;display:none;animation:fadeUp .3s ease}
+.career-card.active{display:block}
+.cc-header{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+.cc-title{font-family:var(--font-head);font-size:24px;font-weight:700;margin-bottom:8px}
+.cc-badges{display:flex;gap:7px;flex-wrap:wrap}
+.badge{font-size:10px;padding:3px 11px;border-radius:100px;font-family:var(--font-mono)}
+.badge-it{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(106,174,212,.28)}
+.badge-nit{background:var(--green-dim);color:var(--green);border:1px solid rgba(109,184,122,.28)}
+.badge-high{background:var(--green-dim);color:var(--green);border:1px solid rgba(109,184,122,.22)}
+.badge-med{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(212,168,83,.22)}
+.badge-stable{background:rgba(255,255,255,0.05);color:var(--text-dim);border:1px solid rgba(255,255,255,0.09)}
+.match-block{text-align:right;flex-shrink:0}
+.match-pct{font-family:var(--font-head);font-size:40px;font-weight:700;color:var(--gold);line-height:1}
+.match-lbl{font-family:var(--font-mono);font-size:9px;color:var(--text-dim);letter-spacing:2px}
+.algo-formula{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);
+  background:var(--bg3);border-radius:6px;padding:8px 12px;margin-bottom:16px;
+  border:1px solid rgba(255,255,255,0.06)}
+.salary-row{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.sal-lbl{font-family:var(--font-mono);font-size:9px;letter-spacing:2px;color:var(--text-dim)}
+.sal-val{font-size:16px;font-weight:700;color:var(--green)}
+.why-fit{background:rgba(212,168,83,0.05);border-left:2px solid rgba(212,168,83,0.42);
+  border-radius:8px;padding:14px 16px;margin-bottom:16px;font-size:13px;color:var(--text-mid);line-height:1.7}
+.daily-work{font-size:12px;color:var(--text-dim);margin-bottom:16px;font-style:italic}
+
+/* ── SKILL MATCH BARS ── */
+.skill-match-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+@media(max-width:520px){.skill-match-row{grid-template-columns:1fr}}
+.skill-match-row>div:last-child{height:140px;position:relative}
+.skill-bars{display:flex;flex-direction:column;gap:8px}
+.sbar-item{display:flex;flex-direction:column;gap:4px}
+.sbar-label{display:flex;justify-content:space-between;font-size:11px}
+.sbar-name{color:var(--text-mid)}.sbar-pct{font-family:var(--font-mono);color:var(--text-dim);font-size:10px}
+.sbar-track{height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden}
+.sbar-fill{height:100%;border-radius:2px;transition:width .8s ease}
+.sbar-fill.match{background:var(--green)}.sbar-fill.gap{background:var(--rose)}
+
+/* ── SUB TABS ── */
+.sub-tabs{display:flex;gap:4px;background:rgba(255,255,255,0.03);border-radius:9px;padding:3px;margin-bottom:18px}
+.subtab{flex:1;padding:8px 4px;border-radius:7px;border:none;background:transparent;
+  color:var(--text-dim);font-size:11px;cursor:pointer;font-family:var(--font-mono);
+  text-transform:uppercase;letter-spacing:.5px;transition:all .18s}
+.subtab:hover{color:var(--text-mid)}
+.subtab.active{background:var(--gold-dim);color:var(--gold-light)}
+.sub-pane{display:none}.sub-pane.active{display:block;animation:fadeUp .3s ease}
+
+/* ── ROADMAP ── */
+.roadmap{position:relative;padding-left:8px}
+.roadmap::before{content:'';position:absolute;left:21px;top:6px;bottom:6px;width:1px;background:var(--border)}
+.rm-step{display:flex;gap:18px;padding-bottom:20px;position:relative;align-items:flex-start}
+.rm-num{width:28px;height:28px;border-radius:50%;background:var(--bg);border:2px solid var(--gold);
+  display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);
+  font-size:10px;color:var(--gold);flex-shrink:0;z-index:1}
+.rm-text{padding-top:4px;font-size:13px;color:var(--text-mid);line-height:1.6}
+
+/* ── LIST ITEMS ── */
+.ls-title{font-family:var(--font-mono);font-size:9px;letter-spacing:3px;
+  color:var(--text-dim);text-transform:uppercase;margin:18px 0 8px}
+.ls-title:first-child{margin-top:0}
+.ls-item{display:flex;gap:11px;align-items:flex-start;padding:9px 0;
+  border-bottom:1px solid rgba(255,255,255,0.05);font-size:13px;color:var(--text-mid);line-height:1.5}
+.ls-item:last-child{border-bottom:none}
+.ls-ic{flex-shrink:0;margin-top:1px}
+
+/* ── CHIPS ── */
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{padding:5px 13px;border-radius:100px;font-size:11px;font-family:var(--font-mono)}
+.chip-blue{background:var(--blue-dim);border:1px solid rgba(106,174,212,.28);color:var(--blue)}
+.chip-green{background:var(--green-dim);border:1px solid rgba(109,184,122,.22);color:var(--green)}
+.chip-dim{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09);color:var(--text-dim)}
+.chip-rose{background:var(--rose-dim);border:1px solid rgba(212,112,112,.22);color:var(--rose)}
+
+/* ── COMPANY ── */
+.co-item{display:flex;gap:13px;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
+.co-item:last-child{border-bottom:none}
+.co-logo{width:34px;height:34px;border-radius:8px;background:rgba(255,255,255,0.06);
+  display:flex;align-items:center;justify-content:center;font-family:var(--font-head);
+  font-weight:700;color:var(--text-mid);font-size:14px;flex-shrink:0}
+.co-name{font-size:13px;color:var(--text-mid)}
+
+/* ── PORTFOLIO PROJECTS ── */
+.proj-item{background:var(--bg3);border:1px solid rgba(255,255,255,0.07);border-radius:10px;
+  padding:14px 16px;margin-bottom:8px}
+.proj-num{font-family:var(--font-mono);font-size:9px;color:var(--gold);margin-bottom:5px}
+.proj-title{font-size:13px;color:var(--text-mid)}
+
+/* ── ALTS ── */
+.alts-section{margin:24px 0}
+
+/* ── ERROR ── */
+.err-box{background:var(--rose-dim);border:1px solid rgba(212,112,112,.28);border-radius:10px;
+  padding:16px 20px;font-size:13px;color:#e09090;line-height:1.6;margin-top:16px}
+
+/* ── SCROLLBAR (6px, gold tint) ── */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(212,168,83,.25);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:rgba(212,168,83,.4)}
+
+/* ── MOBILE 520px ── */
+@media(max-width:520px){
+  .result-header{flex-direction:column}
+  .score-block{text-align:left}
+  .score-bar-wrap{margin-left:0}
+  .cc-header{flex-direction:column}
+  .match-block{text-align:left}
+}
+</style>
+</head>
+<body>
+<div class="bg-orb bg-orb-1"></div>
+<div class="bg-orb bg-orb-2"></div>
+<div class="bg-orb bg-orb-3"></div>
+
+<div class="wrap">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div>
+      <div class="brand">CareerIQ</div>
+      <span class="brand-sub">AI Career Intelligence Platform</span>
+    </div>
+    <div class="step-counter" id="step-counter"></div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="prog-track" id="prog-track">
+    <div class="pseg" data-s="1"></div>
+    <div class="pseg" data-s="2"></div>
+    <div class="pseg" data-s="3"></div>
+    <div class="pseg" data-s="4"></div>
+    <div class="pseg" data-s="5"></div>
+  </div>
+
+  <!-- ══ INTRO ══ -->
+  <div class="screen active" id="screen-intro">
+    <div style="padding:60px 0 24px;text-align:center">
+      <div class="eyebrow">Multi-Agent AI System</div>
+      <h1>Your Career,<br><span class="accent">Intelligently</span> Mapped</h1>
+      <p class="lead" style="margin:16px auto 36px">
+        Not just an AI chatbot. A real intelligence platform with algorithmic scoring,
+        resume analysis, skill gap detection, and a 4-agent AI pipeline.
+      </p>
+
+      <!-- Feature pills -->
+      <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:40px">
+        <span class="badge badge-it">⚙ Algorithmic Scoring</span>
+        <span class="badge badge-nit">📄 Resume Parser</span>
+        <span class="badge badge-high">🤖 4-Agent AI Pipeline</span>
+        <span class="badge badge-med">📊 Skill Gap Charts</span>
+        <span class="badge badge-it">🗺 Career Roadmaps</span>
+        <span class="badge badge-nit">💼 Portfolio Projects</span>
+      </div>
+
+      <!-- API PANEL -->
+      {% if key_configured %}
+      <!-- Server-side key is configured — show locked indicator -->
+      <div class="api-panel" style="text-align:left;max-width:640px;margin:0 auto 28px;background:var(--green-dim);border-color:rgba(34,197,94,.3)">
+        <div class="api-row" style="margin-bottom:12px">
+          <div class="api-icon">🔒</div>
+          <div class="api-text" style="flex:1">
+            <strong style="color:var(--green)">API Key Configured on Server</strong>
+            <span>Your <code>GROQ_API_KEY</code> is loaded from <code>.env</code> — no need to paste it here.</span>
+          </div>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:10px;background:var(--green-dim);color:var(--green);border:1px solid rgba(34,197,94,.3);border-radius:6px;padding:5px 12px">gsk_••••••••</span>
+        </div>
+        <div>
+          <div class="flabel" style="margin-bottom:8px">Choose Model</div>
+          <div style="display:flex;flex-wrap:wrap;gap:7px">
+            <input type="radio" name="model" id="m0" value="llama-3.3-70b-versatile" checked class="mrck">
+            <label for="m0" class="mrpl">🦙 Llama 3.3 70B <span class="tag-rec">BEST</span></label>
+            <input type="radio" name="model" id="m1" value="llama3-70b-8192" class="mrck">
+            <label for="m1" class="mrpl">🦙 Llama 3 70B</label>
+            <input type="radio" name="model" id="m2" value="llama3-8b-8192" class="mrck">
+            <label for="m2" class="mrpl">🦙 Llama 3 8B <span class="tag-fast">FAST</span></label>
+            <input type="radio" name="model" id="m3" value="mixtral-8x7b-32768" class="mrck">
+            <label for="m3" class="mrpl">〜 Mixtral 8x7B</label>
+            <input type="radio" name="model" id="m4" value="gemma2-9b-it" class="mrck">
+            <label for="m4" class="mrpl">✦ Gemma 2 9B</label>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <!-- No server key — user must paste their key -->
+      <div class="api-panel" style="text-align:left;max-width:640px;margin:0 auto 28px">
+        <div class="api-row">
+          <div class="api-icon">⚡</div>
+          <div class="api-text" style="flex:1">
+            <strong>Groq API Key — Free &amp; Ultra-Fast</strong>
+            <span>Get yours at <a href="https://console.groq.com/keys" target="_blank">console.groq.com/keys</a> — powered by LPU inference chips</span>
+          </div>
+          <input type="text" id="api-key-input" class="api-key-in" placeholder="gsk_..." autocomplete="off"/>
+        </div>
+        <div>
+          <div class="flabel" style="margin-bottom:8px">Choose Model</div>
+          <div style="display:flex;flex-wrap:wrap;gap:7px">
+            <input type="radio" name="model" id="m0" value="llama-3.3-70b-versatile" checked class="mrck">
+            <label for="m0" class="mrpl">🦙 Llama 3.3 70B <span class="tag-rec">BEST</span></label>
+            <input type="radio" name="model" id="m1" value="llama3-70b-8192" class="mrck">
+            <label for="m1" class="mrpl">🦙 Llama 3 70B</label>
+            <input type="radio" name="model" id="m2" value="llama3-8b-8192" class="mrck">
+            <label for="m2" class="mrpl">🦙 Llama 3 8B <span class="tag-fast">FAST</span></label>
+            <input type="radio" name="model" id="m3" value="mixtral-8x7b-32768" class="mrck">
+            <label for="m3" class="mrpl">〜 Mixtral 8x7B</label>
+            <input type="radio" name="model" id="m4" value="gemma2-9b-it" class="mrck">
+            <label for="m4" class="mrpl">✦ Gemma 2 9B</label>
+          </div>
+          <div style="font-size:11px;color:var(--text-dim);margin-top:8px">All models are free within Groq's rate limits. Or set <code>GROQ_API_KEY</code> in a <code>.env</code> file to skip this.</div>
+        </div>
+      </div>
+      {% endif %}
+
+      <button class="btn btn-primary" onclick="startApp()" style="font-size:16px;padding:16px 48px">
+        Begin Assessment →
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ STEP 1: PROFILE ══ -->
+  <div class="screen" id="screen-1">
+    <div class="step-hd">
+      <div class="eyebrow">Step 1 of 5</div>
+      <h2>Personal <span class="accent">Profile</span></h2>
+      <p class="lead">Basic information to personalize your results.</p>
+    </div>
+
+    <!-- RESUME UPLOAD -->
+    <div style="margin-bottom:24px">
+      <div class="flabel" style="margin-bottom:10px">📄 Upload Resume (Optional — Auto-fills your skills)</div>
+      <div class="upload-zone" id="upload-zone" onclick="document.getElementById('resume-file').click()"
+           ondragover="event.preventDefault();this.classList.add('drag')"
+           ondragleave="this.classList.remove('drag')"
+           ondrop="handleDrop(event)">
+        <span class="upload-icon">📋</span>
+        <div class="upload-title">Drop your PDF resume here</div>
+        <div class="upload-hint">or click to browse · PDF only · Max 10MB</div>
+      </div>
+      <input type="file" id="resume-file" accept=".pdf" onchange="uploadResume(this)"/>
+      <div class="upload-success" id="upload-success">
+        <span>✓</span> <span id="resume-status">Resume parsed successfully!</span>
+      </div>
+    </div>
+
+    <div class="fgrid" style="margin-bottom:16px">
+      <div class="field">
+        <label class="flabel">Full Name <span class="req">*</span></label>
+        <input type="text" id="f-name" placeholder="e.g. Kaushik"/>
+      </div>
+      <div class="field">
+        <label class="flabel">Age</label>
+        <input type="number" id="f-age" placeholder="e.g. 21" min="12" max="70"/>
+      </div>
+    </div>
+    <div class="fgrid f1" style="gap:16px">
+      <div class="field">
+        <label class="flabel">Education Level <span class="req">*</span></label>
+        <select id="f-edu">
+          <option value="">— Select —</option>
+          <option>10th / High School</option><option>12th / Intermediate</option>
+          <option>Diploma</option><option>B.Tech / B.E.</option>
+          <option>B.Sc / B.Com / B.A.</option><option>BCA / MCA</option>
+          <option>MBA / PGDM</option><option>M.Tech / M.Sc</option>
+          <option>MBBS / MD</option><option>LLB / LLM</option>
+          <option>PhD / Research</option><option>Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="flabel">City / Country</label>
+        <input type="text" id="f-location" placeholder="e.g. Hyderabad, India"/>
+      </div>
+      <div class="field">
+        <label class="flabel">Work Experience</label>
+        <select id="f-exp">
+          <option value="">— Select —</option>
+          <option>Student / Fresher (0 years)</option><option>Less than 1 year</option>
+          <option>1–2 years</option><option>3–5 years</option>
+          <option>5–10 years</option><option>10+ years</option>
+        </select>
+      </div>
+    </div>
+    <div class="navbtns">
+      <button class="btn btn-secondary" onclick="goTo('intro')">← Back</button>
+      <button class="btn btn-primary" onclick="nextStep(1)">Continue →</button>
+    </div>
+  </div>
+
+  <!-- ══ STEP 2: DOMAINS ══ -->
+  <div class="screen" id="screen-2">
+    <div class="step-hd">
+      <div class="eyebrow">Step 2 of 5</div>
+      <h2>Domain <span class="accent">Preference</span></h2>
+      <p class="lead">Which fields interest you? Select one or more.</p>
+    </div>
+    <div class="domain-grid" id="domain-grid"></div>
+    <div class="navbtns" style="margin-top:24px">
+      <button class="btn btn-secondary" onclick="goTo('screen-1')">← Back</button>
+      <button class="btn btn-primary" onclick="nextStep(2)">Continue →</button>
+    </div>
+  </div>
+
+  <!-- ══ STEP 3: SKILLS ══ -->
+  <div class="screen" id="screen-3">
+    <div class="step-hd">
+      <div class="eyebrow">Step 3 of 5</div>
+      <h2>Skills &amp; <span class="accent">Knowledge</span></h2>
+      <p class="lead">Select everything that applies. The more you choose, the smarter your results.</p>
+    </div>
+
+    <!-- Live score preview -->
+    <div class="preview-bar" id="preview-bar">
+      <div class="preview-title">⚡ Live Algorithmic Score Preview</div>
+      <div class="preview-items" id="preview-items"></div>
+    </div>
+
+    <!-- Technical Skills -->
+    <div class="sk-sec">
+      <div class="sk-hd">
+        <div><div class="sk-lbl">Technical / Core Skills <span class="req">*</span></div>
+          <div class="sk-hint">Select all you know — at least 1 required</div></div>
+        <div class="sk-cnt" id="cnt-skills">0 selected</div>
+      </div>
+      <div class="sk-tabs" id="tech-tabs">
+        <button class="stab active" onclick="switchCat('tech','all',this)">All</button>
+        <button class="stab" onclick="switchCat('tech','programming',this)">Programming</button>
+        <button class="stab" onclick="switchCat('tech','data',this)">Data & AI</button>
+        <button class="stab" onclick="switchCat('tech','web',this)">Web</button>
+        <button class="stab" onclick="switchCat('tech','engineering',this)">Engineering</button>
+        <button class="stab" onclick="switchCat('tech','medical',this)">Medical</button>
+        <button class="stab" onclick="switchCat('tech','business',this)">Business</button>
+        <button class="stab" onclick="switchCat('tech','creative',this)">Creative</button>
+        <button class="stab" onclick="switchCat('tech','other',this)">Other</button>
+      </div>
+      <input class="sk-search" placeholder="🔍 Search technical skills..." oninput="searchPills('sk-tech',this.value,'tech')" id="search-tech"/>
+      <div class="sk-pills" id="sk-tech"></div>
+      <div class="no-res" id="nores-tech">No matches — use Add to include it.</div>
+      <div class="custom-row">
+        <input type="text" id="cin-skills" placeholder="Add your own skill..." class="custom-in"/>
+        <button class="custom-btn" onclick="addCustom('sk-tech','cin-skills','skills')">+ Add</button>
+      </div>
+      <input type="hidden" id="f-skills"/>
+    </div>
+
+    <!-- Soft Skills -->
+    <div class="sk-sec">
+      <div class="sk-hd">
+        <div><div class="sk-lbl">Soft Skills</div>
+          <div class="sk-hint">Interpersonal & professional traits</div></div>
+        <div class="sk-cnt" id="cnt-soft">0 selected</div>
+      </div>
+      <input class="sk-search" placeholder="🔍 Search soft skills..." oninput="searchPills('sk-soft',this.value,'soft')" id="search-soft"/>
+      <div class="sk-pills" id="sk-soft"></div>
+      <div class="no-res" id="nores-soft">No matches — use Add to include it.</div>
+      <div class="custom-row">
+        <input type="text" id="cin-soft" placeholder="Add a soft skill..." class="custom-in"/>
+        <button class="custom-btn" onclick="addCustom('sk-soft','cin-soft','soft')">+ Add</button>
+      </div>
+      <input type="hidden" id="f-soft"/>
+    </div>
+
+    <!-- Tools -->
+    <div class="sk-sec">
+      <div class="sk-hd">
+        <div><div class="sk-lbl">Tools / Software / Platforms</div>
+          <div class="sk-hint">Apps and software you've worked with</div></div>
+        <div class="sk-cnt" id="cnt-tools">0 selected</div>
+      </div>
+      <div class="sk-tabs" id="tools-tabs">
+        <button class="stab active" onclick="switchCat('tools','all',this)">All</button>
+        <button class="stab" onclick="switchCat('tools','dev',this)">Dev</button>
+        <button class="stab" onclick="switchCat('tools','design',this)">Design</button>
+        <button class="stab" onclick="switchCat('tools','data',this)">Data</button>
+        <button class="stab" onclick="switchCat('tools','office',this)">Office</button>
+        <button class="stab" onclick="switchCat('tools','cloud',this)">Cloud</button>
+        <button class="stab" onclick="switchCat('tools','business',this)">Business</button>
+        <button class="stab" onclick="switchCat('tools','media',this)">Media</button>
+      </div>
+      <input class="sk-search" placeholder="🔍 Search tools..." oninput="searchPills('sk-tools',this.value,'tools')" id="search-tools"/>
+      <div class="sk-pills" id="sk-tools"></div>
+      <div class="no-res" id="nores-tools">No matches — use Add to include it.</div>
+      <div class="custom-row">
+        <input type="text" id="cin-tools" placeholder="Add a tool..." class="custom-in"/>
+        <button class="custom-btn" onclick="addCustom('sk-tools','cin-tools','tools')">+ Add</button>
+      </div>
+      <input type="hidden" id="f-tools"/>
+    </div>
+
+    <!-- Languages -->
+    <div class="sk-sec">
+      <div class="sk-hd">
+        <div><div class="sk-lbl">Languages Known</div>
+          <div class="sk-hint">Human languages you speak, read or write</div></div>
+        <div class="sk-cnt" id="cnt-langs">0 selected</div>
+      </div>
+      <input class="sk-search" placeholder="🔍 Search languages..." oninput="searchPills('sk-langs',this.value,'langs')" id="search-langs"/>
+      <div class="sk-pills" id="sk-langs"></div>
+      <div class="no-res" id="nores-langs">No matches — use Add.</div>
+      <div class="custom-row">
+        <input type="text" id="cin-langs" placeholder="Add a language..." class="custom-in"/>
+        <button class="custom-btn" onclick="addCustom('sk-langs','cin-langs','langs')">+ Add</button>
+      </div>
+      <input type="hidden" id="f-langs"/>
+    </div>
+
+    <div class="navbtns">
+      <button class="btn btn-secondary" onclick="goTo('screen-2')">← Back</button>
+      <button class="btn btn-primary" onclick="nextStep(3)">Continue →</button>
+    </div>
+  </div>
+
+  <!-- ══ STEP 4: PERSONALITY ══ -->
+  <div class="screen" id="screen-4">
+    <div class="step-hd">
+      <div class="eyebrow">Step 4 of 5</div>
+      <h2>Personality &amp; <span class="accent">Work Style</span></h2>
+      <p class="lead">Select all traits that describe how you work best.</p>
+    </div>
+    <div class="field" style="margin-bottom:24px">
+      <label class="flabel">Your Personality Traits</label>
+      <div class="pills" id="personality-pills"></div>
+    </div>
+    <div class="field">
+      <label class="flabel">Preferred Work Mode</label>
+      <div class="pills" id="workmode-pills"></div>
+    </div>
+    <div class="navbtns" style="margin-top:40px">
+      <button class="btn btn-secondary" onclick="goTo('screen-3')">← Back</button>
+      <button class="btn btn-primary" onclick="nextStep(4)">Continue →</button>
+    </div>
+  </div>
+
+  <!-- ══ STEP 5: GOALS ══ -->
+  <div class="screen" id="screen-5">
+    <div class="step-hd">
+      <div class="eyebrow">Step 5 of 5</div>
+      <h2>Career <span class="accent">Goals</span></h2>
+      <p class="lead">What matters most to you in a career?</p>
+    </div>
+    <div class="field" style="margin-bottom:24px">
+      <label class="flabel">Top Priorities</label>
+      <div class="pills" id="goals-pills"></div>
+    </div>
+    <div class="field">
+      <label class="flabel">Salary Expectation <span style="color:var(--text-dim);font-size:10px">(optional)</span></label>
+      <input type="text" id="f-salary" placeholder="e.g. ₹5–10 LPA  or  $50k–70k/yr"/>
+    </div>
+    <div id="err-msg"></div>
+    <div class="navbtns" style="margin-top:40px">
+      <button class="btn btn-secondary" onclick="goTo('screen-4')">← Back</button>
+      <button class="btn btn-primary" onclick="submitForm()" style="font-size:15px">
+        Analyze My Career ✦
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ LOADING ══ -->
+  <div class="screen" id="screen-loading">
+    <div style="text-align:center;padding:80px 0">
+      <div class="ring-wrap"><div class="ring-inner"></div></div>
+      <h2 style="font-family:'Playfair Display',serif" id="loader-name">Analyzing profile</h2>
+      <div class="loader-msg" id="loader-msg">Initializing agents...</div>
+      <div class="agent-steps">
+        <div class="astep" id="ls-1"><span class="aicon">◦</span><span class="agent-badge ab-blue">Agent 1</span> Profile Analyzer — computing algorithmic scores</div>
+        <div class="astep" id="ls-2"><span class="aicon">◦</span><span class="agent-badge ab-green">Agent 2</span> Career Matcher — AI enrichment for top careers</div>
+        <div class="astep" id="ls-3"><span class="aicon">◦</span><span class="agent-badge ab-purple">Agent 3</span> Skill Gap Detector — analyzing market demand</div>
+        <div class="astep" id="ls-4"><span class="aicon">◦</span><span class="agent-badge ab-amber">Agent 4</span> Report Builder — assembling your career intelligence</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ RESULTS ══ -->
+  <div class="screen" id="screen-results"></div>
+
+</div><!-- /wrap -->
+
+<script>
+// ═══════════════════ DATA ═══════════════════
+const DOMAINS = [
+  "Technology & IT","Healthcare & Medicine","Business & Management","Creative & Design",
+  "Science & Research","Law & Public Services","Education & Training","Finance & Economics",
+  "Engineering & Manufacturing","Media & Communications","Social Work & NGO","Not Sure — Explore All",
+];
+const PERSONALITY = [
+  "Analytical thinker","Creative problem solver","Natural leader","Team collaborator",
+  "Detail-oriented","Big-picture visionary","People-oriented","Data-driven",
+  "Risk-taker","Methodical planner","Empathetic listener","Independent worker",
+];
+const WORKMODES = ["Remote","On-site / Office","Hybrid","Field Work","Own Business / Freelance","No Preference"];
+const GOALS = [
+  "High salary potential","Work-life balance","Making social impact","Continuous learning",
+  "Entrepreneurship","Job stability","Remote work flexibility","Creative expression",
+  "Rapid career growth","Prestigious title",
+];
+
+const TECH_SKILLS = {
+  programming:["Python","Java","C","C++","C#","JavaScript","TypeScript","Go","Rust","Swift","Kotlin","PHP","Ruby","R","MATLAB","Scala","Perl","Shell/Bash Scripting","Dart","Lua","Haskell","Elixir","Groovy","Julia","Solidity","WebAssembly","PowerShell","VBA","Objective-C","Data Structures & Algorithms","OOP","Functional Programming","System Design","Microservices","Design Patterns","API Development","Operating Systems","Computer Networks","Cryptography"],
+  data:["Machine Learning","Deep Learning","Data Analysis","Data Science","NLP","Computer Vision","Statistics & Probability","Data Visualization","Big Data","Business Intelligence","Predictive Modeling","Feature Engineering","TensorFlow","PyTorch","Scikit-learn","Keras","XGBoost","LightGBM","OpenCV","NLTK","SpaCy","Hugging Face Transformers","LangChain","Pandas","NumPy","Matplotlib","Seaborn","SQL","NoSQL","ETL Pipelines","Data Warehousing","Apache Spark","Hadoop","Apache Kafka","Airflow","dbt","Power BI","Tableau","Google Looker Studio","Generative AI","Prompt Engineering","RAG","MLOps","Model Deployment","A/B Testing","Time Series Analysis"],
+  web:["HTML5","CSS3","JavaScript ES6+","React.js","Angular","Vue.js","Next.js","Svelte","Tailwind CSS","Bootstrap","Material UI","Sass/SCSS","Redux","GraphQL","WebSockets","PWA","Node.js","Express.js","Django","Flask","FastAPI","Spring Boot","Laravel","Ruby on Rails","ASP.NET","REST API Design","gRPC","OAuth/JWT","Serverless","CI/CD","Docker","Nginx","WordPress","Shopify","Webflow","UI/UX Design","Responsive Design","Accessibility (WCAG)"],
+  engineering:["AutoCAD","SolidWorks","CATIA","ANSYS","Creo","MATLAB/Simulink","Fluid Mechanics","Thermodynamics","CNC Machining","3D Printing","CAD/CAM","Lean Manufacturing","Six Sigma","Quality Control","FMEA","Circuit Design","PCB Design","Embedded Systems","PLC Programming","SCADA","Power Systems","Control Systems","Signal Processing","VLSI Design","FPGA","IoT","Robotics","Arduino","Raspberry Pi","Structural Analysis","AutoCAD Civil 3D","Revit BIM","STAAD Pro","Surveying","Construction Management","Environmental Engineering","Chemical Process Design","Petroleum Engineering"],
+  medical:["Clinical Diagnosis","Physical Examination","Patient Care","Anatomy & Physiology","Pathology","Pharmacology","Microbiology","Biochemistry","Emergency Medicine","Surgical Assistance","Internal Medicine","Pediatrics","Cardiology","Nursing Care","IV Therapy","Physiotherapy","Occupational Therapy","Radiology & Imaging","ECG Interpretation","Dental Procedures","Medical Research","Clinical Trials","Epidemiology","Public Health","Biostatistics","Medical Writing","Telemedicine","Mental Health Counseling","CBT","Psychotherapy","Medical Coding","Medical Billing","Hospital Administration","Health Informatics","First Aid & CPR"],
+  business:["Accounting","Financial Analysis","Taxation","Auditing","Financial Modeling","Budgeting","Investment Analysis","Portfolio Management","Risk Management","Valuation","Corporate Finance","Insurance","Banking Operations","Credit Analysis","Marketing Strategy","Digital Marketing","SEO/SEM","Content Marketing","Social Media Marketing","Brand Management","Market Research","Sales Strategy","B2B Sales","CRM","Project Management","Operations Management","Supply Chain","Procurement","HR Management","Talent Acquisition","Payroll","Labor Law","Legal Research","Contract Drafting","Compliance","Corporate Law","Intellectual Property","Litigation","Product Management","Business Development","Consulting","E-commerce Operations"],
+  creative:["Graphic Design","UI/UX Design","Brand Identity Design","Logo Design","Illustration","Infographic Design","Typography","Print Design","Video Editing","Motion Graphics","2D Animation","3D Animation","3D Modeling","VFX & Compositing","Character Design","Storyboarding","Photography","Photo Editing","Cinematography","Film Direction","Color Grading","Content Writing","Copywriting","Technical Writing","UX Writing","Blogging","Scriptwriting","Journalism","Music Production","Audio Editing","Podcast Production","Voice Over","Sound Design","Game Design","Game Art","Fashion Design","Interior Design"],
+  other:["Teaching","Curriculum Development","E-learning Design","Academic Research","Tutoring","Counseling & Therapy","Social Work","Community Development","NGO Management","Cooking / Culinary Arts","Event Management","Travel & Tourism","Hotel Management","Agriculture","Horticulture","Environmental Science","Renewable Energy","Climate Science","Architecture","Urban Planning","Sports Coaching","Fitness Training","Yoga & Wellness","Translation / Interpretation","Public Speaking","Logistics","Aviation","Cybersecurity","Ethical Hacking","Network Security","Digital Forensics"],
+};
+const SOFT_SKILLS = ["Verbal Communication","Written Communication","Public Speaking","Active Listening","Presentation Skills","Storytelling","Business Communication","Empathy","Emotional Intelligence","Relationship Building","Networking","Customer Service","Conflict Resolution","Negotiation","Persuasion","Diplomacy","Cultural Awareness","Mentoring","Coaching","Leadership","Team Management","Decision Making","Strategic Thinking","Delegation","Change Management","Crisis Management","Accountability","Stakeholder Management","Critical Thinking","Problem Solving","Analytical Thinking","Creativity","Innovation","Design Thinking","Research Skills","Data-Driven Thinking","Time Management","Prioritization","Multitasking","Attention to Detail","Work Ethic","Self-Motivation","Initiative","Ownership Mindset","Reliability","Adaptability","Flexibility","Resilience","Learning Agility","Curiosity","Stress Management","Patience","Perseverance","Growth Mindset","Teamwork","Collaboration","Giving Feedback","Receiving Feedback","Building Consensus"];
+const TOOLS_DATA = {
+  dev:["Git","GitHub","GitLab","Bitbucket","VS Code","IntelliJ IDEA","PyCharm","Eclipse","Vim/NeoVim","Android Studio","Xcode","Docker","Kubernetes","Jenkins","GitHub Actions","GitLab CI/CD","CircleCI","Ansible","Terraform","Helm","Selenium","Cypress","Jest","Pytest","JUnit","Postman","Insomnia","MySQL Workbench","pgAdmin","MongoDB Compass","Redis","DBeaver","Elasticsearch","npm/yarn","pip","Maven","Gradle","Linux/Unix","Windows Server","Jupyter Notebook","Google Colab","Replit","Grafana","Prometheus","Datadog","Sentry","Jira","Linear","Confluence","GitHub Copilot","Cursor","OpenAI API","Anthropic API","Groq API","LangChain","LlamaIndex","Hugging Face"],
+  design:["Figma","Adobe XD","Sketch","InVision","Zeplin","Framer","ProtoPie","Balsamiq","Axure RP","Whimsical","Adobe Photoshop","Adobe Illustrator","Adobe InDesign","CorelDRAW","Canva","Affinity Designer","GIMP","Inkscape","Adobe After Effects","Adobe Premiere Pro","Final Cut Pro","DaVinci Resolve","Blender","Maya","3ds Max","ZBrush","Substance Painter","Cinema 4D","Procreate","Adobe Color","Storybook"],
+  data:["Microsoft Excel","Google Sheets","Power BI","Tableau","Google Looker Studio","Metabase","Grafana","Qlik Sense","MySQL","PostgreSQL","SQL Server","Oracle DB","SQLite","MongoDB","Redis","Cassandra","DynamoDB","Firestore","Snowflake","BigQuery","Redshift","Azure Synapse","Apache Spark","Apache Kafka","Airflow","dbt","Talend","Informatica","SPSS","SAS","RStudio","STATA","Minitab","Pandas","NumPy","Matplotlib","Seaborn","Plotly","Databricks"],
+  office:["Microsoft Word","Microsoft Excel","Microsoft PowerPoint","Microsoft Outlook","Microsoft Teams","Microsoft OneNote","SharePoint","Microsoft Visio","Microsoft Project","Google Docs","Google Slides","Google Drive","Gmail","Google Meet","Google Forms","Google Calendar","Slack","Zoom","Webex","Discord","Loom","Calendly","Trello","Asana","Notion","ClickUp","Monday.com","Basecamp","Airtable","Confluence","Coda","Obsidian","GitBook"],
+  cloud:["AWS","Google Cloud (GCP)","Microsoft Azure","IBM Cloud","Oracle Cloud","AWS EC2","AWS S3","AWS Lambda","AWS RDS","AWS SageMaker","AWS EKS","Google BigQuery","App Engine","Google Kubernetes Engine","Vertex AI","Firebase","Azure VMs","Azure Functions","Azure DevOps","Azure ML","Heroku","Vercel","Netlify","DigitalOcean","Cloudflare","Railway","Render","Fly.io","Terraform","Pulumi","Ansible","Chef","Puppet"],
+  business:["Tally Prime","SAP ERP","SAP S/4HANA","Oracle ERP","Microsoft Dynamics","QuickBooks","Zoho Books","FreshBooks","Sage 50","Salesforce","HubSpot","Zoho CRM","Pipedrive","Freshsales","Workday","BambooHR","Darwinbox","Greythr","Keka","ADP","SAP SuccessFactors","Mailchimp","ActiveCampaign","Marketo","Klaviyo","Shopify","WooCommerce","Magento","Razorpay","Stripe","PayPal","Zendesk","Freshdesk","Intercom","ServiceNow","Odoo","Zoho One","Google Analytics 4","Google Ads","Meta Ads Manager","SEMrush","Ahrefs","Mixpanel","Amplitude"],
+  media:["Adobe Premiere Pro","Final Cut Pro","DaVinci Resolve","iMovie","CapCut","Filmora","Vegas Pro","Adobe Audition","GarageBand","Logic Pro","Ableton Live","FL Studio","Audacity","Pro Tools","OBS Studio","Streamlabs","StreamYard","Adobe Lightroom","Capture One","Snapseed","Hootsuite","Buffer","Later","Sprout Social","Meta Business Suite","Mailchimp","Substack","Beehiiv","ConvertKit","Ghost","WordPress","Webflow","Wix","Google Search Console","Yoast SEO","Screaming Frog","BuzzSumo"],
+};
+const LANGUAGES = ["English","Hindi","Telugu","Tamil","Kannada","Malayalam","Marathi","Bengali","Gujarati","Punjabi","Urdu","Odia","Assamese","Sanskrit","Konkani","Manipuri","Kashmiri","Sindhi","Spanish","French","German","Italian","Portuguese","Dutch","Polish","Swedish","Norwegian","Danish","Finnish","Greek","Czech","Hungarian","Romanian","Ukrainian","Russian","Serbian","Croatian","Bulgarian","Mandarin Chinese","Japanese","Korean","Arabic","Turkish","Persian (Farsi)","Vietnamese","Thai","Indonesian","Malay","Tagalog","Burmese","Nepali","Hebrew","Swahili","Amharic","Yoruba","Zulu","Hausa"];
+
+// ═══════════════════ BUILD UI ═══════════════════
+function buildDomains(){
+  const w=document.getElementById('domain-grid');
+  DOMAINS.forEach((d,i)=>{
+    w.innerHTML+=`<input type="checkbox" class="dck" id="d${i}" name="domain" value="${d}"><label class="dcard" for="d${i}"><div class="ddot"></div><div class="dname">${d}</div></label>`;
+  });
+}
+function buildPills(id,items,name){
+  const w=document.getElementById(id);
+  items.forEach((it,i)=>{
+    w.innerHTML+=`<input type="checkbox" class="pck" id="${name}${i}" name="${name}" value="${it}"><label class="plbl" for="${name}${i}">${it}</label>`;
+  });
+}
+function buildSkillPills(cid,items,grp,cat){
+  const w=document.getElementById(cid);
+  items.forEach(item=>{
+    const id=`${grp}-${item.replace(/[^a-z0-9]/gi,'')}`;
+    const sp=document.createElement('span');
+    sp.dataset.cat=cat||'all';
+    sp.innerHTML=`<input type="checkbox" class="spck" id="${id}" name="${grp}" value="${item}"><label class="splbl" for="${id}">${item}</label>`;
+    w.appendChild(sp);
+    sp.querySelector('input').addEventListener('change',()=>{ syncHidden(grp); updateCount(grp); triggerPreview(); });
+  });
+}
+function buildAllSkills(){
+  Object.entries(TECH_SKILLS).forEach(([cat,items])=>buildSkillPills('sk-tech',items,'skills',cat));
+  buildSkillPills('sk-soft',SOFT_SKILLS,'soft','all');
+  Object.entries(TOOLS_DATA).forEach(([cat,items])=>buildSkillPills('sk-tools',items,'tools',cat));
+  buildSkillPills('sk-langs',LANGUAGES,'langs','all');
+}
+buildDomains();
+buildPills('personality-pills',PERSONALITY,'p');
+buildPills('workmode-pills',WORKMODES,'wm');
+buildPills('goals-pills',GOALS,'g');
+buildAllSkills();
+
+// ═══════════════════ SKILL HELPERS ═══════════════════
+function syncHidden(grp){
+  const m={skills:'f-skills',soft:'f-soft',tools:'f-tools',langs:'f-langs'};
+  const vals=[...document.querySelectorAll(`input[name="${grp}"]:checked`)].map(x=>x.value);
+  const f=document.getElementById(m[grp]);
+  if(f) f.value=vals.join(', ');
+}
+function updateCount(grp){
+  const m={skills:'cnt-skills',soft:'cnt-soft',tools:'cnt-tools',langs:'cnt-langs'};
+  const c=document.querySelectorAll(`input[name="${grp}"]:checked`).length;
+  const el=document.getElementById(m[grp]);
+  if(el) el.textContent=`${c} selected`;
+}
+function switchCat(group,cat,btn){
+  const tId=group==='tech'?'tech-tabs':'tools-tabs';
+  document.querySelectorAll(`#${tId} .stab`).forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  const pId=group==='tech'?'sk-tech':'sk-tools';
+  document.querySelectorAll(`#${pId}>span`).forEach(sp=>{
+    sp.style.display=(cat==='all'||sp.dataset.cat===cat)?'inline':'none';
+  });
+  const sId=group==='tech'?'search-tech':'search-tools';
+  const se=document.getElementById(sId);
+  if(se) se.value='';
+  const nId=group==='tech'?'nores-tech':'nores-tools';
+  const ne=document.getElementById(nId);
+  if(ne) ne.style.display='none';
+}
+function searchPills(cid,q,group){
+  const query=q.toLowerCase().trim();
+  let visible=0;
+  document.querySelectorAll(`#${cid}>span`).forEach(sp=>{
+    const lbl=sp.querySelector('label');
+    if(!lbl) return;
+    const show=!query||lbl.textContent.toLowerCase().includes(query);
+    sp.style.display=show?'inline':'none';
+    if(show) visible++;
+  });
+  const nId=`nores-${group}`;
+  const ne=document.getElementById(nId);
+  if(ne) ne.style.display=(query&&visible===0)?'block':'none';
+  if(query){
+    const tId=cid==='sk-tech'?'tech-tabs':cid==='sk-tools'?'tools-tabs':null;
+    if(tId) document.querySelectorAll(`#${tId} .stab`).forEach((t,i)=>t.classList.toggle('active',i===0));
+  }
+}
+function addCustom(cid,inpId,grp){
+  const inp=document.getElementById(inpId);
+  const val=inp.value.trim();
+  if(!val) return;
+  const exist=[...document.querySelectorAll(`#${cid} input`)].map(x=>x.value.toLowerCase());
+  if(exist.includes(val.toLowerCase())){inp.value='';return;}
+  const id=`${grp}-custom-${Date.now()}`;
+  const sp=document.createElement('span');
+  sp.dataset.cat='custom';
+  sp.innerHTML=`<input type="checkbox" class="spck" id="${id}" name="${grp}" value="${val}" checked><label class="splbl" for="${id}" style="border-color:var(--blue);color:#8bb8ff;background:var(--blue-dim)">${val}</label>`;
+  document.getElementById(cid).appendChild(sp);
+  sp.querySelector('input').addEventListener('change',()=>{syncHidden(grp);updateCount(grp);triggerPreview();});
+  inp.value='';
+  syncHidden(grp); updateCount(grp); triggerPreview();
+}
+['cin-skills','cin-soft','cin-tools','cin-langs'].forEach((id,i)=>{
+  const groups=['skills','soft','tools','langs'];
+  const cids=['sk-tech','sk-soft','sk-tools','sk-langs'];
+  setTimeout(()=>{
+    const el=document.getElementById(id);
+    if(el) el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addCustom(cids[i],id,groups[i]);}});
+  },200);
+});
+
+// ═══════════════════ LIVE PREVIEW ═══════════════════
+let previewTimer=null;
+function triggerPreview(){
+  clearTimeout(previewTimer);
+  previewTimer=setTimeout(fetchPreview,600);
+}
+async function fetchPreview(){
+  const skills=getSelectedSkills();
+  if(skills.length<2) return;
+  const domains=[...document.querySelectorAll('input[name="domain"]:checked')].map(x=>x.value);
+  const personality=[...document.querySelectorAll('input[name="p"]:checked')].map(x=>x.value);
+  const goals=[...document.querySelectorAll('input[name="g"]:checked')].map(x=>x.value);
+  try{
+    const resp=await fetch('/api/score-preview',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({skills,domains,personality,goals})});
+    const data=await resp.json();
+    renderPreview(data);
+  } catch(e){}
+}
+function renderPreview(data){
+  const bar=document.getElementById('preview-bar');
+  const items=document.getElementById('preview-items');
+  if(!bar||!items) return;
+  bar.classList.add('show');
+  items.innerHTML=data.slice(0,5).map(c=>`
+    <div class="pv-item">
+      <div class="pv-name">${esc(c.title)}</div>
+      <div class="pv-track"><div class="pv-fill" style="width:${c.score}%"></div></div>
+      <div class="pv-score">${c.score}%</div>
+    </div>`).join('');
+}
+function getSelectedSkills(){
+  const tech=[...document.querySelectorAll('input[name="skills"]:checked')].map(x=>x.value);
+  const soft=[...document.querySelectorAll('input[name="soft"]:checked')].map(x=>x.value);
+  const tools=[...document.querySelectorAll('input[name="tools"]:checked')].map(x=>x.value);
+  return [...tech,...soft,...tools];
+}
+
+// ═══════════════════ RESUME UPLOAD ═══════════════════
+async function uploadResume(input){
+  const file=input.files[0];
+  if(!file) return;
+  const fd=new FormData();
+  fd.append('resume',file);
+  document.getElementById('upload-zone').style.opacity='.6';
+  try{
+    const resp=await fetch('/api/parse-resume',{method:'POST',body:fd});
+    const data=await resp.json();
+    if(data.error){alert('Resume parse error: '+data.error);return;}
+    // Auto-fill fields
+    if(data.name&&data.name.length<60) document.getElementById('f-name').value=data.name;
+    if(data.email) document.getElementById('f-location').placeholder=data.email;
+    // Auto-check detected skills
+    let checked=0;
+    data.skills.forEach(skill=>{
+      document.querySelectorAll(`input[name="skills"], input[name="soft"], input[name="tools"]`).forEach(inp=>{
+        if(inp.value.toLowerCase()===skill.toLowerCase()&&!inp.checked){
+          inp.checked=true; checked++;
+        }
+      });
+    });
+    ['skills','soft','tools'].forEach(g=>{syncHidden(g);updateCount(g);});
+    triggerPreview();
+    const suc=document.getElementById('upload-success');
+    document.getElementById('resume-status').textContent=
+      `Resume parsed! Auto-selected ${checked} skills from ${data.skills.length} detected.`;
+    suc.classList.add('show');
+  } catch(e){alert('Error parsing resume.');}
+  finally{document.getElementById('upload-zone').style.opacity='1';}
+}
+function handleDrop(e){
+  e.preventDefault();
+  document.getElementById('upload-zone').classList.remove('drag');
+  const file=e.dataTransfer.files[0];
+  if(file&&file.name.endsWith('.pdf')){
+    const dt=new DataTransfer();dt.items.add(file);
+    const inp=document.getElementById('resume-file');
+    inp.files=dt.files;
+    uploadResume(inp);
+  }
+}
+
+// ═══════════════════ NAVIGATION ═══════════════════
+let curScreen='intro';
+function goTo(id){
+  document.querySelector('.screen.active')?.classList.remove('active');
+  document.getElementById(id)?.classList.add('active');
+  curScreen=id;
+  updateProg();
+  // Only scroll to top when going to a FORM step, not when rendering results
+  if(id !== 'screen-results'){
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+}
+function updateProg(){
+  const m={'screen-1':1,'screen-2':2,'screen-3':3,'screen-4':4,'screen-5':5};
+  const cur=m[curScreen]||0;
+  document.getElementById('step-counter').textContent=cur?`${cur} / 5`:'';
+  document.querySelectorAll('.pseg').forEach(s=>{
+    const n=+s.dataset.s;
+    s.className='pseg'+(n<cur?' done':n===cur?' active':'');
+  });
+  const pt=document.getElementById('prog-track');
+  pt.style.display=(curScreen==='intro'||curScreen.includes('loading')||curScreen==='screen-results')?'none':'flex';
+}
+function startApp(){
+  const keyInput=document.getElementById('api-key-input');
+  // If input doesn't exist, server has the key configured
+  if(!keyInput){
+    goTo('screen-1'); return;
+  }
+  const key=keyInput.value.trim();
+  if(!key){alert('Please enter your Groq API key to continue.');return;}
+  if(!key.startsWith('gsk_')){alert('Groq API keys start with "gsk_" — please check your key.');return;}
+  goTo('screen-1');
+}
+function nextStep(step){
+  if(step===1){
+    if(!document.getElementById('f-name').value.trim()){alert('Please enter your name.');return;}
+    if(!document.getElementById('f-edu').value){alert('Please select your education level.');return;}
+    goTo('screen-2');
+  } else if(step===2){
+    if(![...document.querySelectorAll('input[name="domain"]:checked')].length){alert('Please select at least one domain.');return;}
+    goTo('screen-3');
+  } else if(step===3){
+    if(!document.getElementById('f-skills').value.trim()){alert('Please select at least one skill.');return;}
+    goTo('screen-4');
+  } else if(step===4){
+    goTo('screen-5');
+  }
+}
+
+// ═══════════════════ SUBMIT ═══════════════════
+async function submitForm(){
+  // If key input doesn't exist, server has the key — send empty string (server will use ENV key)
+  const keyEl=document.getElementById('api-key-input');
+  const apiKey=keyEl?keyEl.value.trim():'';
+  const model=document.querySelector('input[name="model"]:checked')?.value||'llama-3.3-70b-versatile';
+  const name=document.getElementById('f-name').value.trim();
+
+  const profile={
+    name, age:document.getElementById('f-age').value.trim(),
+    education:document.getElementById('f-edu').value,
+    location:document.getElementById('f-location').value.trim(),
+    experience:document.getElementById('f-exp').value,
+    domains:[...document.querySelectorAll('input[name="domain"]:checked')].map(x=>x.value),
+    skills:[...document.querySelectorAll('input[name="skills"]:checked')].map(x=>x.value),
+    softSkills:[...document.querySelectorAll('input[name="soft"]:checked')].map(x=>x.value),
+    tools:[...document.querySelectorAll('input[name="tools"]:checked')].map(x=>x.value),
+    languages:[...document.querySelectorAll('input[name="langs"]:checked')].map(x=>x.value),
+    personality:[...document.querySelectorAll('input[name="p"]:checked')].map(x=>x.value),
+    workMode:[...document.querySelectorAll('input[name="wm"]:checked')].map(x=>x.value).join(', '),
+    goals:[...document.querySelectorAll('input[name="g"]:checked')].map(x=>x.value),
+    salary:document.getElementById('f-salary').value.trim(),
+  };
+
+  goTo('screen-loading');
+  document.getElementById('loader-name').textContent=`Analyzing ${name}'s profile`;
+
+  // Animate agent steps
+  const delays=[0,1800,3600,5200];
+  delays.forEach((d,i)=>setTimeout(()=>{
+    const el=document.getElementById(`ls-${i+1}`);
+    if(el){el.classList.add('done');el.querySelector('.aicon').textContent='✓';}
+  },d));
+  document.getElementById('loader-msg').textContent=`⚡ Running on Groq · ${model.replace(/-/g,' ')}`;
+
+  try{
+    const resp=await fetch('/api/analyze',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({apiKey,model,profile}),
+    });
+    const data=await resp.json();
+    if(!resp.ok){
+      goTo('screen-5');
+      document.getElementById('err-msg').innerHTML=`<div class="err-box">⚠ ${esc(data.error||'Analysis failed.')}<br><small>Check your API key and try again.</small></div>`;
+      return;
+    }
+    renderResults(data,name);
+  } catch(e){
+    goTo('screen-5');
+    document.getElementById('err-msg').innerHTML=`<div class="err-box">⚠ Network error. Is the Flask server running?</div>`;
+  }
+}
+
+// ═══════════════════ RENDER RESULTS ═══════════════════
+let charts={};
+function renderResults(r,name){
+  const rs=document.getElementById('screen-results');
+  const score=r.fitScore||0;
+  const top=r.topCareers||[];
+  const gap=r.skillGapAnalysis||{};
+
+  // ── career tabs
+  const tabsHtml=top.map((c,i)=>
+    `<button class="ctab ${i===0?'active':''}" onclick="switchCareer(${i})">${i+1}. ${esc(c.title)}</button>`
+  ).join('');
+
+  // ── career panes
+  const panesHtml=top.map((c,i)=>{
+    const gc=c.growthOutlook==='High'?'badge-high':c.growthOutlook==='Medium'?'badge-med':'badge-stable';
+    const matched=c.matchedSkills||[];
+    const gaps=c.gapSkills||[];
+    const roadmap=(c.roadmap||[]).map((s,j)=>`<div class="rm-step"><div class="rm-num">${j+1}</div><div class="rm-text">${esc(s)}</div></div>`).join('');
+    const courses=(c.courses||[]).map(co=>`<div class="ls-item"><span class="ls-ic" style="color:var(--blue)">▸</span>${esc(co)}</div>`).join('');
+    const certs=(c.certifications||[]).map(ce=>`<div class="ls-item"><span class="ls-ic" style="color:var(--amber)">★</span>${esc(ce)}</div>`).join('');
+    const roles=(c.jobRoles||[]).map(r=>`<span class="chip chip-blue">${esc(r)}</span>`).join('');
+    const skills=(c.keySkillsNeeded||c.gapSkills||[]).map(s=>`<span class="chip chip-green">${esc(s)}</span>`).join('');
+    const companies=(c.companies||[]).map(co=>`<div class="co-item"><div class="co-logo">${esc(co[0])}</div><div class="co-name">${esc(co)}</div></div>`).join('');
+    const projects=(c.portfolioProjects||[]).map((p,j)=>`<div class="proj-item"><div class="proj-num">PROJECT ${j+1}</div><div class="proj-title">${esc(p)}</div></div>`).join('');
+
+    const matchBarHtml=[
+      ...matched.slice(0,3).map(s=>`<div class="sbar-item"><div class="sbar-label"><span class="sbar-name">${esc(s)}</span><span class="sbar-pct">✓ You have this</span></div><div class="sbar-track"><div class="sbar-fill match" style="width:85%"></div></div></div>`),
+      ...gaps.slice(0,2).map(s=>`<div class="sbar-item"><div class="sbar-label"><span class="sbar-name">${esc(s)}</span><span class="sbar-pct">✗ Gap</span></div><div class="sbar-track"><div class="sbar-fill gap" style="width:70%"></div></div></div>`),
+    ].join('');
+
+    return `<div class="career-card ${i===0?'active':''}" id="cc-${i}">
+      <div class="cc-header">
+        <div>
+          <div class="cc-title">${esc(c.title)}</div>
+          <div class="cc-badges">
+            <span class="badge ${c.isIT?'badge-it':'badge-nit'}">${c.isIT?'IT':'NON-IT'}</span>
+            <span class="badge ${gc}">Growth: ${esc(c.growthOutlook||'—')}</span>
+            <span class="badge badge-stable">${esc(c.domain||'—')}</span>
+          </div>
+        </div>
+        <div class="match-block">
+          <div class="match-pct">${c.matchPercent||0}%</div>
+          <div class="match-lbl">MATCH</div>
+        </div>
+      </div>
+      <div class="algo-formula">
+        Score = (Skill Match ${c.skillScore||0}% × 0.4) + (Domain Interest ${c.domainScore||0}% × 0.2) + (Personality ${c.personalityScore||0}% × 0.2) + (Market Demand ${c.marketScore||0}% × 0.2)
+      </div>
+      <div class="salary-row">
+        <span class="sal-lbl">SALARY</span>
+        <span class="sal-val">${esc(c.salaryRange||'—')}</span>
+        <span class="badge badge-stable" style="margin-left:8px">Market Demand: ${c.marketDemand||0}%</span>
+      </div>
+      <div class="why-fit">${esc(c.whyFit||'')}</div>
+      ${c.dailyWork?`<div class="daily-work">📅 ${esc(c.dailyWork)}</div>`:''}
+      <div class="skill-match-row">
+        <div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text-dim);margin-bottom:10px">SKILL MATCH ANALYSIS</div><div class="skill-bars">${matchBarHtml}</div></div>
+        <div><canvas id="radar-${i}" height="140" style="max-height:140px"></canvas></div>
+      </div>
+      <div class="sub-tabs">
+        <button class="subtab active" onclick="switchSub(${i},'roadmap',this)">Roadmap</button>
+        <button class="subtab" onclick="switchSub(${i},'courses',this)">Courses</button>
+        <button class="subtab" onclick="switchSub(${i},'jobs',this)">Job Roles</button>
+        <button class="subtab" onclick="switchSub(${i},'companies',this)">Companies</button>
+        <button class="subtab" onclick="switchSub(${i},'projects',this)">Projects</button>
+      </div>
+      <div class="sub-pane active" id="sp-${i}-roadmap"><div class="roadmap">${roadmap}</div></div>
+      <div class="sub-pane" id="sp-${i}-courses">
+        <div class="ls-title">Courses</div>${courses}
+        ${certs?`<div class="ls-title">Certifications</div>${certs}`:''}
+      </div>
+      <div class="sub-pane" id="sp-${i}-jobs">
+        <div class="ls-title">Job Roles</div><div class="chips" style="margin-bottom:16px">${roles}</div>
+        <div class="ls-title">Key Skills to Build</div><div class="chips">${skills}</div>
+      </div>
+      <div class="sub-pane" id="sp-${i}-companies"><div class="ls-title">Top Hiring Companies</div>${companies}</div>
+      <div class="sub-pane" id="sp-${i}-projects"><div class="ls-title">Recommended Portfolio Projects</div>${projects||'<div style="color:var(--text-dim);font-size:13px">No projects listed for this career.</div>'}</div>
+    </div>`;
+  }).join('');
+
+  // ── skill gap chart data
+  const critGaps=gap.criticalGaps||[];
+  const mktTrends=gap.marketTrends||[];
+
+  // ── strengths/gaps
+  const strengthsHtml=(r.strengthsIdentified||[]).map(s=>`<div class="chk-item"><span class="chk-ic" style="color:var(--green)">✓</span>${esc(s)}</div>`).join('');
+  const gapsHtml=(top[0]?.gapSkills||[]).map(s=>`<div class="chk-item"><span class="chk-ic" style="color:var(--rose)">△</span>${esc(s)}</div>`).join('');
+  const actionsHtml=(r.immediateActions||[]).map((a,i)=>`<div class="action-item"><span class="action-num">0${i+1}</span>${esc(a)}</div>`).join('');
+  const altsHtml=(r.alternativeCareers||[]).map(a=>`<span class="chip chip-dim">${esc(a)}</span>`).join('');
+  const trendsHtml=mktTrends.map(t=>`<span class="trend-chip">📈 ${esc(t.skill)} ${esc(t.growth||'')}</span>`).join('');
+  const lPathHtml=(gap.learningPath||[]).map(w=>`<div class="ls-item"><span class="ls-ic" style="color:var(--blue)">◆</span><div><strong style="font-size:12px;color:var(--blue)">${esc(w.week)}</strong> — ${esc(w.focus)} <span style="color:var(--text-dim);font-size:11px">· ${esc(w.resource||'')}</span></div></div>`).join('');
+
+  rs.innerHTML=`
+    <div class="result-header">
+      <div>
+        <div class="eyebrow">Analysis Complete — 4-Agent Pipeline</div>
+        <h2>${esc(name)}'s <span class="accent">Career Intelligence Report</span></h2>
+      </div>
+      <div class="score-block">
+        <div class="score-num">${score}%</div>
+        <div class="score-lbl">OVERALL MATCH</div>
+        <div class="score-bar-wrap"><div class="score-bar-fill" id="score-bar-fill"></div></div>
+        <div class="algo-label">Algorithmic + AI Score</div>
+      </div>
+    </div>
+
+    <div class="summary-card"><p>${esc(r.overallSummary||'')}</p></div>
+
+    <!-- ALGO BREAKDOWN -->
+    <div class="eyebrow" style="margin:20px 0 10px">Score Formula Breakdown — Top Career</div>
+    <div class="algo-grid">
+      <div class="algo-cell"><div class="algo-val" style="color:var(--blue)">${top[0]?.skillScore||0}%</div><div class="algo-key">Skill Match × 0.4</div></div>
+      <div class="algo-cell"><div class="algo-val" style="color:var(--cyan)">${top[0]?.domainScore||0}%</div><div class="algo-key">Domain Fit × 0.2</div></div>
+      <div class="algo-cell"><div class="algo-val" style="color:var(--purple)">${top[0]?.personalityScore||0}%</div><div class="algo-key">Personality × 0.2</div></div>
+      <div class="algo-cell"><div class="algo-val" style="color:var(--green)">${top[0]?.marketDemand||0}%</div><div class="algo-key">Market Demand × 0.2</div></div>
+    </div>
+
+    <!-- CHARTS ROW -->
+    <div class="chart-row">
+      <div class="chart-box">
+        <div class="chart-title">Top 5 Career Match Scores (Algorithmic)</div>
+        <canvas id="bar-chart" height="140" style="max-height:140px"></canvas>
+      </div>
+      <div class="chart-box">
+        <div class="chart-title">Critical Skill Gaps for Top Career</div>
+        <div class="gap-list" id="gap-list">
+          ${critGaps.length?critGaps.map(g=>`
+            <div class="gap-item">
+              <div class="gap-meta">
+                <span class="gap-name">${esc(g.skill)}</span>
+                <span class="gap-demand">Demand: ${g.demand||0}% · ${esc(g.priority||'')}</span>
+              </div>
+              <div class="gap-track"><div class="gap-fill" style="width:${g.demand||60}%;background:${g.priority==='High'?'var(--rose)':'var(--amber)'}"></div></div>
+            </div>`).join('')
+          :'<div style="color:var(--text-dim);font-size:13px">No critical gaps detected.</div>'}
+        </div>
+      </div>
+    </div>
+
+    <!-- STRENGTHS + INSIGHT + ACTIONS -->
+    <div class="two-col">
+      <div class="card-sm">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:10px">Strengths</div>
+        ${strengthsHtml}
+      </div>
+      <div class="card-sm">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:10px">Top Career Skill Gaps</div>
+        ${gapsHtml}
+      </div>
+    </div>
+    ${r.personalityInsight?`<div class="insight-box"><div class="eyebrow" style="margin-bottom:8px">Personality Insight</div><p>${esc(r.personalityInsight)}</p></div>`:''}
+    <div class="actions-box"><div class="eyebrow" style="margin-bottom:10px">⚡ Start This Week</div>${actionsHtml}</div>
+
+    <!-- MARKET TRENDS -->
+    ${mktTrends.length?`<div class="card-sm" style="margin:14px 0">
+      <div class="chart-title">📈 Market Trends — Fast-Growing Skills</div>
+      <div class="trend-grid">${trendsHtml}</div>
+    </div>`:''}
+
+    <!-- LEARNING PATH -->
+    ${lPathHtml?`<div class="card-sm" style="margin:14px 0">
+      <div class="chart-title">🗺 Skill Gap Learning Path</div>
+      ${lPathHtml}
+    </div>`:''}
+
+    <!-- TOP CAREERS -->
+    <div style="margin:28px 0 0">
+      <div class="eyebrow" style="margin-bottom:12px">Top 5 Career Matches</div>
+      <div class="career-tabs">${tabsHtml}</div>
+      ${panesHtml}
+    </div>
+
+    ${altsHtml?`<div class="alts-section"><div class="eyebrow" style="margin-bottom:10px">Also Consider</div><div class="chips">${altsHtml}</div></div>`:''}
+
+    <div style="margin-top:36px;text-align:center">
+      <button class="btn btn-secondary" onclick="restart()">← New Assessment</button>
+    </div>`;
+
+  goTo('screen-results');
+
+  // Animate score bar
+  setTimeout(()=>{
+    const f=document.getElementById('score-bar-fill');
+    if(f) f.style.width=Math.min(score,100)+'%';
+  },400);
+
+  // Bar chart
+  setTimeout(()=>buildBarChart(top),500);
+
+  // Radar charts per career
+  setTimeout(()=>top.forEach((_,i)=>buildRadarChart(i,top[i])),600);
+}
+
+function buildBarChart(careers){
+  const ctx=document.getElementById('bar-chart');
+  if(!ctx) return;
+  if(charts.bar) charts.bar.destroy();
+  ctx.style.maxHeight='140px';
+  charts.bar=new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels:careers.map(c=>c.title.length>16?c.title.substring(0,16)+'…':c.title),
+      datasets:[{
+        data:careers.map(c=>c.matchPercent||0),
+        backgroundColor:['rgba(79,142,247,0.7)','rgba(0,212,200,0.6)','rgba(168,85,247,0.6)','rgba(34,197,94,0.6)','rgba(245,158,11,0.6)'],
+        borderColor:['rgba(79,142,247,1)','rgba(0,212,200,1)','rgba(168,85,247,1)','rgba(34,197,94,1)','rgba(245,158,11,1)'],
+        borderWidth:1,borderRadius:4,
+      }],
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:v=>` ${v.raw}%`}}},
+      scales:{
+        x:{ticks:{color:'#7090b8',font:{size:8}},grid:{display:false}},
+        y:{ticks:{color:'#7090b8',font:{size:8},callback:v=>v+'%'},grid:{color:'rgba(255,255,255,0.04)'},min:0,max:100},
+      },
+    },
+  });
+}
+
+function buildRadarChart(i,career){
+  const ctx=document.getElementById(`radar-${i}`);
+  if(!ctx) return;
+  if(charts[`r${i}`]) charts[`r${i}`].destroy();
+  ctx.style.maxHeight='140px';
+  charts[`r${i}`]=new Chart(ctx,{
+    type:'radar',
+    data:{
+      labels:['Skills','Domain','Personality','Demand','Growth'],
+      datasets:[{
+        data:[career.skillScore||0,career.domainScore||0,career.personalityScore||0,career.marketDemand||0,(career.growthOutlook==='High'?90:career.growthOutlook==='Medium'?70:55)],
+        backgroundColor:'rgba(79,142,247,0.1)',borderColor:'rgba(79,142,247,0.7)',
+        pointBackgroundColor:'rgba(79,142,247,1)',borderWidth:1.5,pointRadius:2,
+      }],
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{r:{min:0,max:100,ticks:{display:false},grid:{color:'rgba(255,255,255,0.07)'},
+        pointLabels:{color:'#7090b8',font:{size:8}},angleLines:{color:'rgba(255,255,255,0.07)'}}},
+    },
+  });
+}
+
+function switchCareer(i){
+  document.querySelectorAll('.ctab').forEach((t,j)=>t.classList.toggle('active',j===i));
+  document.querySelectorAll('.career-card').forEach((c,j)=>c.classList.toggle('active',j===i));
+  // Do NOT auto-scroll — let the user stay where they are
+}
+function switchSub(ci,pane,btn){
+  const card=document.getElementById(`cc-${ci}`);
+  card.querySelectorAll('.subtab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  card.querySelectorAll('.sub-pane').forEach(p=>p.classList.remove('active'));
+  document.getElementById(`sp-${ci}-${pane}`)?.classList.add('active');
+}
+
+function esc(s){
+  if(!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function restart(){
+  document.getElementById('screen-results').innerHTML='';
+  for(let i=1;i<=4;i++){
+    const el=document.getElementById(`ls-${i}`);
+    if(el){el.classList.remove('done');el.querySelector('.aicon').textContent='◦';}
+  }
+  document.getElementById('err-msg').innerHTML='';
+  document.getElementById('preview-bar').classList.remove('show');
+  Object.values(charts).forEach(c=>c.destroy());
+  charts={};
+  goTo('intro');
+}
+updateProg();
+</script>
+</body>
+</html>
