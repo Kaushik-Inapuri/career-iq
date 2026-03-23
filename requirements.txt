@@ -3,3 +3,6 @@ pdfplumber
 python-dotenv
 requests
 gunicorn
+pandas
+numpy
+scikit-learn
